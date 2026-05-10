@@ -34,7 +34,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            touch-action: none;
         }
 
         #game-container {
@@ -211,6 +210,32 @@
             padding: 1.5rem;
             max-height: 80vh;
             overflow-y: auto;
+            touch-action: pan-y;
+        }
+
+        .toast {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(244, 67, 54, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            text-align: center;
+            width: max-content;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            opacity: 1;
         }
 
         .shop-grid {
@@ -299,6 +324,9 @@
                 <button id="close-shop-btn" class="btn">Close</button>
             </div>
         </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast">Not enough coins!</div>
 
         <canvas id="gameCanvas"></canvas>
     </div>
@@ -804,8 +832,10 @@
         }
 
         function handleAction(e) {
-            // Prevent default touch behavior (like zooming/scrolling) except on buttons
-            if (e.type === 'touchstart' && e.target !== startBtn && e.target !== restartBtn) {
+            if (e.target.closest('#shop-screen') || e.target.closest('.btn')) {
+                return;
+            }
+            if (e.type === 'touchstart') {
                 e.preventDefault();
             }
             if (gameActive) {
@@ -813,15 +843,11 @@
             }
         }
 
-        window.addEventListener('mousedown', (e) => {
-            if (e.target !== startBtn && e.target !== restartBtn) {
-                handleAction(e);
-            }
-        });
+        window.addEventListener('mousedown', handleAction);
         window.addEventListener('touchstart', handleAction, { passive: false });
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
-                handleAction(e);
+                if (gameActive) bird.flap();
             }
         });
 
@@ -874,17 +900,18 @@
                 sounds.buy();
                 equipSkin(id);
             } else {
-                // Not enough coins feedback
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = "Need Coins!";
-                btn.style.background = "#F44336";
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = "var(--primary)";
-                }, 1000);
+                showToast("Your coins aren't available for the purchase.");
             }
         };
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
 
         function openShop(e) {
             if (e) {
