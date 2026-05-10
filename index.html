@@ -29,7 +29,7 @@
 
         body {
             overflow: hidden;
-            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            background: #111;
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -43,7 +43,7 @@
             max-width: 450px;
             height: 100vh;
             max-height: 800px;
-            background: rgba(255, 255, 255, 0.1);
+            background: transparent;
             overflow: hidden;
             box-shadow: 0 0 50px rgba(0,0,0,0.2);
             border-radius: 20px;
@@ -488,7 +488,13 @@
         class Pipe {
             constructor() {
                 this.x = GAME_WIDTH;
-                this.gapTop = Math.random() * (GAME_HEIGHT - pipeGap - 100) + 50;
+                const minGapTop = 50;
+                const maxGapTop = GAME_HEIGHT - pipeGap - 50;
+                if (maxGapTop <= minGapTop) {
+                    this.gapTop = minGapTop;
+                } else {
+                    this.gapTop = Math.random() * (maxGapTop - minGapTop) + minGapTop;
+                }
                 this.passed = false;
             }
 
@@ -608,17 +614,106 @@
             coinHud.textContent = playerCoins;
         }
 
+        // --- Environment & Weather ---
+        const CYCLES = [
+            { name: 'Morning', top: '#ff9a9e', bottom: '#fecfef' },
+            { name: 'Day', top: '#4facfe', bottom: '#00f2fe' },
+            { name: 'Evening', top: '#fa709a', bottom: '#fee140' },
+            { name: 'Night', top: '#141e30', bottom: '#243b55' }
+        ];
+        
+        let globalTime = 0;
+        let currentWeather = 'CLEAR';
+        let envParticles = [];
+        let stars = [];
+
+        for (let i = 0; i < 50; i++) {
+            stars.push({ x: Math.random() * 500, y: Math.random() * 800, radius: Math.random() * 1.5, alpha: Math.random() });
+        }
+
+        function hexToRgb(hex) {
+            let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+        }
+
+        function lerpColor(c1, c2, t) {
+            const r1 = hexToRgb(c1), r2 = hexToRgb(c2);
+            return `rgb(${Math.round(r1.r + (r2.r - r1.r) * t)}, ${Math.round(r1.g + (r2.g - r1.g) * t)}, ${Math.round(r1.b + (r2.b - r1.b) * t)})`;
+        }
+
+        function updateEnvironment() {
+            globalTime++;
+            if (globalTime % 1000 === 0) {
+                const r = Math.random();
+                if (r < 0.5) currentWeather = 'CLEAR';
+                else if (r < 0.75) currentWeather = 'RAIN';
+                else currentWeather = 'SNOW';
+            }
+
+            if (currentWeather === 'RAIN' && globalTime % 2 === 0) {
+                envParticles.push({ x: Math.random() * GAME_WIDTH, y: -10, type: 'RAIN', vy: 10 + Math.random() * 5, length: 10 + Math.random() * 10 });
+            } else if (currentWeather === 'SNOW' && globalTime % 10 === 0) {
+                envParticles.push({ x: Math.random() * GAME_WIDTH, y: -10, type: 'SNOW', vy: 1 + Math.random() * 2, vx: -1 + Math.random() * 2, radius: 1 + Math.random() * 2 });
+            }
+        }
+
+        function drawBackground() {
+            const cycleDuration = 3600;
+            const phase = (globalTime % cycleDuration) / cycleDuration;
+            const cycleIndex = Math.floor(phase * 4);
+            const nextIndex = (cycleIndex + 1) % 4;
+            const t = (phase * 4) % 1;
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
+            gradient.addColorStop(0, lerpColor(CYCLES[cycleIndex].top, CYCLES[nextIndex].top, t));
+            gradient.addColorStop(1, lerpColor(CYCLES[cycleIndex].bottom, CYCLES[nextIndex].bottom, t));
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            if (cycleIndex === 3 || (cycleIndex === 2 && t > 0.5) || (cycleIndex === 0 && t < 0.5)) {
+                ctx.fillStyle = 'white';
+                stars.forEach(star => {
+                    ctx.globalAlpha = star.alpha * (Math.sin(globalTime * 0.05 + star.x) * 0.5 + 0.5);
+                    ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI*2); ctx.fill();
+                });
+                ctx.globalAlpha = 1.0;
+            }
+
+            // Draw clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            const cloudT = globalTime * 0.01;
+            for (let i = 0; i < 3; i++) {
+                const x = ((GAME_WIDTH + 200) * ((0.2 + i * 0.4 + cloudT * 0.1) % 1)) - 100;
+                const y = 100 + i * 150;
+                ctx.beginPath();
+                ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.arc(x + 25, y - 10, 25, 0, Math.PI * 2); ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw weather particles
+            for (let i = envParticles.length - 1; i >= 0; i--) {
+                let p = envParticles[i];
+                if (p.type === 'RAIN') {
+                    p.y += p.vy; p.x -= 2;
+                    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 2, p.y + p.length); ctx.stroke();
+                } else if (p.type === 'SNOW') {
+                    p.y += p.vy; p.x += Math.sin(globalTime * 0.05 + p.y * 0.01) + p.vx;
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
+                }
+                if (p.y > GAME_HEIGHT || p.x < -20) envParticles.splice(i, 1);
+            }
+        }
+
         function startGame() {
             initAudio();
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
             init();
             gameActive = true;
             startScreen.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
             shopScreen.classList.add('hidden');
-            requestAnimationFrame(gameLoop);
         }
 
         function gameOver() {
@@ -634,83 +729,69 @@
 
         function updateDifficulty() {
             pipeSpeed = INITIAL_PIPE_SPEED + Math.floor(score / 5) * 0.4;
-            pipeGap = Math.max(110, INITIAL_PIPE_GAP - Math.floor(score / 10) * 10);
+            pipeGap = Math.max(120, INITIAL_PIPE_GAP - Math.floor(score / 10) * 10);
         }
 
-        function gameLoop() {
-            if (!gameActive) return;
+        function renderLoop() {
+            updateEnvironment();
+            drawBackground();
 
-            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-            drawClouds();
-
-            bird.update();
-            bird.draw();
-
-            if (frameCount % Math.floor(PIPE_SPAWN_RATE / (pipeSpeed / 2)) === 0) {
-                let newPipe = new Pipe();
-                pipes.push(newPipe);
-                // 50% chance to spawn a coin in the middle of the pipe gap
-                if (Math.random() > 0.5) {
-                    inGameCoins.push(new Coin(newPipe.x + PIPE_WIDTH / 2, newPipe.gapTop + pipeGap / 2));
-                }
+            if (bird) {
+                if (gameActive) bird.update();
+                bird.draw();
             }
 
-            for (let i = inGameCoins.length - 1; i >= 0; i--) {
-                inGameCoins[i].update();
-                inGameCoins[i].draw();
-
-                if (!inGameCoins[i].collected && inGameCoins[i].isColliding(bird)) {
-                    inGameCoins[i].collected = true;
-                    playerCoins++;
-                    coinHud.textContent = playerCoins;
-                    sounds.coin();
-                    inGameCoins.splice(i, 1);
-                    continue;
+            if (gameActive) {
+                if (frameCount % Math.floor(PIPE_SPAWN_RATE / (pipeSpeed / 2)) === 0) {
+                    let newPipe = new Pipe();
+                    pipes.push(newPipe);
+                    if (Math.random() > 0.5) {
+                        inGameCoins.push(new Coin(newPipe.x + PIPE_WIDTH / 2, newPipe.gapTop + pipeGap / 2));
+                    }
                 }
 
-                if (inGameCoins[i].x + inGameCoins[i].radius < 0) {
-                    inGameCoins.splice(i, 1);
+                for (let i = inGameCoins.length - 1; i >= 0; i--) {
+                    inGameCoins[i].update();
+                    inGameCoins[i].draw();
+
+                    if (!inGameCoins[i].collected && inGameCoins[i].isColliding(bird)) {
+                        inGameCoins[i].collected = true;
+                        playerCoins++;
+                        coinHud.textContent = playerCoins;
+                        sounds.coin();
+                        inGameCoins.splice(i, 1);
+                        continue;
+                    }
+
+                    if (inGameCoins[i].x + inGameCoins[i].radius < 0) {
+                        inGameCoins.splice(i, 1);
+                    }
                 }
+
+                for (let i = pipes.length - 1; i >= 0; i--) {
+                    pipes[i].update();
+                    pipes[i].draw();
+
+                    if (pipes[i].isColliding(bird)) {
+                        gameOver();
+                    }
+
+                    if (!pipes[i].passed && pipes[i].x + PIPE_WIDTH < bird.x) {
+                        pipes[i].passed = true;
+                        score++;
+                        scoreDisplay.textContent = score;
+                        sounds.score();
+                        updateDifficulty();
+                    }
+
+                    if (pipes[i].x + PIPE_WIDTH < -20) {
+                        pipes.splice(i, 1);
+                    }
+                }
+                frameCount++;
             }
 
-            for (let i = pipes.length - 1; i >= 0; i--) {
-                pipes[i].update();
-                pipes[i].draw();
-
-                if (pipes[i].isColliding(bird)) {
-                    gameOver();
-                }
-
-                if (!pipes[i].passed && pipes[i].x + PIPE_WIDTH < bird.x) {
-                    pipes[i].passed = true;
-                    score++;
-                    scoreDisplay.textContent = score;
-                    sounds.score();
-                    updateDifficulty();
-                }
-
-                if (pipes[i].x + PIPE_WIDTH < -20) {
-                    pipes.splice(i, 1);
-                }
-            }
-
-            frameCount++;
-            requestAnimationFrame(gameLoop);
-        }
-
-        function drawClouds() {
-            // Very simple procedural clouds
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            const t = frameCount * 0.01;
-            for (let i = 0; i < 3; i++) {
-                const x = ((GAME_WIDTH + 200) * ((0.2 + i * 0.4 + t * 0.1) % 1)) - 100;
-                const y = 100 + i * 150;
-                ctx.beginPath();
-                ctx.arc(x, y, 30, 0, Math.PI * 2);
-                ctx.arc(x + 25, y - 10, 25, 0, Math.PI * 2);
-                ctx.arc(x + 50, y, 30, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            requestAnimationFrame(renderLoop);
         }
 
         function handleAction(e) {
@@ -771,10 +852,8 @@
             currentSkin = id;
             saveProgress();
             renderShop();
-            if (!gameActive) {
-                bird.skin = SKINS[currentSkin]; // update bird display if on start screen
-                drawStaticBg();
-                bird.draw();
+            if (!gameActive && bird) {
+                bird.skin = SKINS[currentSkin];
             }
         };
 
@@ -845,12 +924,9 @@
         restartBtn.addEventListener('click', handleButtonPress);
         restartBtn.addEventListener('touchstart', handleButtonPress, { passive: false });
 
-        // Initial setup for background
-        function drawStaticBg() {
-            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
-            drawClouds();
-        }
-        drawStaticBg();
+        // Initialize the single render loop
+        bird = new Bird(); // Dummy bird for start screen
+        renderLoop();
 
     </script>
 </body>
