@@ -154,6 +154,14 @@
             opacity: 0.8;
             margin-top: 0.5rem;
         }
+
+        .developer {
+            font-size: 0.85rem;
+            margin-top: 1.5rem;
+            opacity: 0.8;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -167,6 +175,7 @@
                 <h1>Sky Flap</h1>
                 <p>Tap to soar through the gaps!</p>
                 <button id="start-btn" class="btn">Start Game</button>
+                <div class="developer">Created by Osita Daniel Ezenwoye</div>
             </div>
         </div>
 
@@ -394,6 +403,9 @@
 
         function startGame() {
             initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             init();
             gameActive = true;
             startScreen.classList.add('hidden');
@@ -473,13 +485,20 @@
         }
 
         function handleAction(e) {
-            if (e.type === 'touchstart') e.preventDefault();
+            // Prevent default touch behavior (like zooming/scrolling) except on buttons
+            if (e.type === 'touchstart' && e.target !== startBtn && e.target !== restartBtn) {
+                e.preventDefault();
+            }
             if (gameActive) {
                 bird.flap();
             }
         }
 
-        window.addEventListener('mousedown', handleAction);
+        window.addEventListener('mousedown', (e) => {
+            if (e.target !== startBtn && e.target !== restartBtn) {
+                handleAction(e);
+            }
+        });
         window.addEventListener('touchstart', handleAction, { passive: false });
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
@@ -487,15 +506,17 @@
             }
         });
 
-        startBtn.addEventListener('click', (e) => {
+        function handleButtonPress(e) {
+            if (e.type === 'touchstart') e.preventDefault();
             e.stopPropagation();
             startGame();
-        });
+        }
 
-        restartBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            startGame();
-        });
+        startBtn.addEventListener('click', handleButtonPress);
+        startBtn.addEventListener('touchstart', handleButtonPress, { passive: false });
+
+        restartBtn.addEventListener('click', handleButtonPress);
+        restartBtn.addEventListener('touchstart', handleButtonPress, { passive: false });
 
         // Initial setup for background
         function drawStaticBg() {
