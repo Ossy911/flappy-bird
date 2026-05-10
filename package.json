@@ -1,0 +1,24 @@
+{
+  "name": "sky-flap",
+  "version": "1.0.0",
+  "description": "A beautiful, single-file Flappy Bird clone built with HTML5 Canvas, CSS, and Vanilla JavaScript.",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "test": "echo \"No tests specified\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ossy911/flappy-bird.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ossy911/flappy-bird/issues"
+  },
+  "homepage": "https://github.com/Ossy911/flappy-bird#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
