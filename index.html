@@ -493,7 +493,15 @@
                 if (maxGapTop <= minGapTop) {
                     this.gapTop = minGapTop;
                 } else {
-                    this.gapTop = Math.random() * (maxGapTop - minGapTop) + minGapTop;
+                    if (pipes && pipes.length > 0) {
+                        const lastPipe = pipes[pipes.length - 1];
+                        const maxVariation = 130;
+                        const constrainedMin = Math.max(minGapTop, lastPipe.gapTop - maxVariation);
+                        const constrainedMax = Math.min(maxGapTop, lastPipe.gapTop + maxVariation);
+                        this.gapTop = Math.random() * (constrainedMax - constrainedMin) + constrainedMin;
+                    } else {
+                        this.gapTop = Math.random() * (maxGapTop - minGapTop) + minGapTop;
+                    }
                 }
                 this.passed = false;
             }
@@ -728,8 +736,8 @@
         }
 
         function updateDifficulty() {
-            pipeSpeed = INITIAL_PIPE_SPEED + Math.floor(score / 5) * 0.4;
-            pipeGap = Math.max(120, INITIAL_PIPE_GAP - Math.floor(score / 10) * 10);
+            pipeSpeed = INITIAL_PIPE_SPEED + Math.floor(score / 5) * 0.2;
+            pipeGap = Math.max(130, INITIAL_PIPE_GAP - Math.floor(score / 10) * 10);
         }
 
         function renderLoop() {
@@ -742,7 +750,8 @@
             }
 
             if (gameActive) {
-                if (frameCount % Math.floor(PIPE_SPAWN_RATE / (pipeSpeed / 2)) === 0) {
+                const SPACING = 250;
+                if (pipes.length === 0 || (GAME_WIDTH - pipes[pipes.length - 1].x) >= SPACING) {
                     let newPipe = new Pipe();
                     pipes.push(newPipe);
                     if (Math.random() > 0.5) {
