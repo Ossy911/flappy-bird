@@ -797,6 +797,10 @@
 
         function renderLoop() {
             updateEnvironment();
+            if (shakeFrames > 0) {
+                ctx.save();
+                ctx.translate((Math.random()-0.5)*15, (Math.random()-0.5)*15);
+            }
             drawBackground();
 
             if (bird) {
@@ -1019,5 +1023,6 @@
     </script>
 </body>
 </html>
+
 
 
