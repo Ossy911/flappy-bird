@@ -846,6 +846,7 @@
 
             if (bird) {
                 if (gameActive) bird.update();
+                    if (frameCount % 3 === 0) trailParticles.push({x: bird.x - 10, y: bird.y, life: 20});
                 bird.draw();
             }
 
@@ -1069,6 +1070,7 @@
     </script>
 </body>
 </html>
+
 
 
 
