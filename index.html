@@ -909,6 +909,11 @@
             if (e.code === 'Space' || e.code === 'ArrowUp') {
                 if (gameActive) bird.flap();
             }
+            if (gameActive && e.code === 'ShiftLeft' && bird.dashCooldown === 0) {
+                pipeSpeed = INITIAL_PIPE_SPEED * 3;
+                bird.dashCooldown = 3;
+                setTimeout(() => { if(gameActive) updateDifficulty(); }, 500);
+            }
         });
 
         // --- Shop Logic ---
@@ -1052,6 +1057,7 @@
     </script>
 </body>
 </html>
+
 
 
 
