@@ -581,6 +581,10 @@
 
             update() {
                 this.x -= pipeSpeed;
+                if (score >= 5) {
+                    this.gapTop += this.vy;
+                    if (this.gapTop <= this.minGapTop || this.gapTop >= this.maxGapTop) this.vy *= -1;
+                }
             }
 
             isColliding(bird) {
@@ -619,6 +623,10 @@
 
             update() {
                 this.x -= pipeSpeed;
+                if (score >= 5) {
+                    this.gapTop += this.vy;
+                    if (this.gapTop <= this.minGapTop || this.gapTop >= this.maxGapTop) this.vy *= -1;
+                }
                 this.rotation += 0.1;
             }
 
@@ -1060,6 +1068,7 @@
     </script>
 </body>
 </html>
+
 
 
 
