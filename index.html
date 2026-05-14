@@ -850,6 +850,14 @@
                 bird.draw();
             }
 
+            for(let i=trailParticles.length-1; i>=0; i--) {
+                let pt = trailParticles[i];
+                pt.life--; pt.x -= pipeSpeed;
+                ctx.fillStyle = "rgba(255, 255, 255, )";
+                ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2); ctx.fill();
+                if (pt.life <= 0) trailParticles.splice(i, 1);
+            }
+
             if (gameActive) {
                 const SPACING = 250;
                 if (pipes.length === 0 || (GAME_WIDTH - pipes[pipes.length - 1].x) >= SPACING) {
@@ -911,6 +919,14 @@
             if (e.type === 'touchstart') {
                 e.preventDefault();
             }
+            for(let i=trailParticles.length-1; i>=0; i--) {
+                let pt = trailParticles[i];
+                pt.life--; pt.x -= pipeSpeed;
+                ctx.fillStyle = "rgba(255, 255, 255, )";
+                ctx.beginPath(); ctx.arc(pt.x, pt.y, 3, 0, Math.PI*2); ctx.fill();
+                if (pt.life <= 0) trailParticles.splice(i, 1);
+            }
+
             if (gameActive) {
                 bird.flap();
             }
@@ -1070,6 +1086,7 @@
     </script>
 </body>
 </html>
+
 
 
 
