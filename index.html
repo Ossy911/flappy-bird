@@ -545,6 +545,9 @@
                     }
                 }
                 this.passed = false;
+                this.vy = (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random() * 0.5);
+                this.minGapTop = 50;
+                this.maxGapTop = GAME_HEIGHT - pipeGap - 50;
             }
 
             draw() {
@@ -1057,6 +1060,7 @@
     </script>
 </body>
 </html>
+
 
 
 
