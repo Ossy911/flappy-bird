@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -316,7 +316,7 @@
                 <button id="restart-btn" class="btn">Play Again</button>
                 <button id="game-over-shop-btn" class="btn shop-btn">Shop</button>
                 <div id="best-score">Best: <span id="high-score">0</span></div>
-                <div class="developer">Made with ❤️ by Osita Daniel Ezenwoye</div>
+                <div class="developer">Made with â¤ï¸ by Osita Daniel Ezenwoye</div>
             </div>
         </div>
 
@@ -427,7 +427,7 @@
         const INITIAL_PIPE_SPEED = 2.5;
 
         // Game State
-        let bird, pipes, score, highScore = 0, frameCount, gameActive = false, pipeSpeed, pipeGap;
+        let bird, pipes, score, highScore = 0, frameCount, gameActive = false, pipeSpeed, pipeGap, shakeFrames = 0;
 
         function resize() {
             const container = document.getElementById('game-container');
@@ -900,7 +900,7 @@
 
                 card.innerHTML = `
                     <div class="skin-preview" style="background: ${skin.body}; border: 3px solid ${skin.wing}">
-                        ${skin.type === 'female' ? '<div style="position:absolute;top:-5px;left:18px;color:#E91E63;font-size:12px;">🎀</div>' : ''}
+                        ${skin.type === 'female' ? '<div style="position:absolute;top:-5px;left:18px;color:#E91E63;font-size:12px;">ðŸŽ€</div>' : ''}
                     </div>
                     <div class="skin-name">${skin.id}</div>
                     ${btnHtml}
@@ -1018,3 +1018,4 @@
     </script>
 </body>
 </html>
+
