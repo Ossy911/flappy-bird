@@ -736,6 +736,17 @@
                 ctx.globalAlpha = 1.0;
             }
 
+            // Draw Parallax Mountains
+            ctx.fillStyle = cycleIndex === 3 ? '#1a2a42' : '#7cb342';
+            for(let i=0; i<5; i++) {
+                const mx = ((GAME_WIDTH + 300) * ((0.1 + i * 0.25 + globalTime * 0.002) % 1)) - 150;
+                ctx.beginPath();
+                ctx.moveTo(mx - 150, GAME_HEIGHT);
+                ctx.lineTo(mx, GAME_HEIGHT - 200 - (i%2)*50);
+                ctx.lineTo(mx + 150, GAME_HEIGHT);
+                ctx.fill();
+            }
+
             // Draw clouds
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
             const cloudT = globalTime * 0.01;
@@ -1028,6 +1039,7 @@
     </script>
 </body>
 </html>
+
 
 
 
