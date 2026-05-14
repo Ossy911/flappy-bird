@@ -803,6 +803,11 @@
             }
             drawBackground();
 
+            if (shakeFrames > 0) {
+                ctx.restore();
+                shakeFrames--;
+            }
+
             if (bird) {
                 if (gameActive) bird.update();
                 bird.draw();
@@ -1023,6 +1028,7 @@
     </script>
 </body>
 </html>
+
 
 
 
