@@ -521,6 +521,7 @@
 
             flap() {
                 this.velocity = FLAP_STRENGTH;
+                this.dashCooldown = Math.max(0, this.dashCooldown - 1);
                 sounds.flap();
             }
         }
@@ -1051,6 +1052,7 @@
     </script>
 </body>
 </html>
+
 
 
 
