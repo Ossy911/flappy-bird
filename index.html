@@ -821,6 +821,14 @@
                 shakeFrames--;
             }
 
+            for(let i=collisionParticles.length-1; i>=0; i--) {
+                let p = collisionParticles[i];
+                p.x += p.vx; p.y += p.vy; p.life--;
+                ctx.fillStyle = "rgba(255, 255, 255, )";
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+                if(p.life <= 0) collisionParticles.splice(i, 1);
+            }
+
             if (bird) {
                 if (gameActive) bird.update();
                 bird.draw();
@@ -1041,6 +1049,7 @@
     </script>
 </body>
 </html>
+
 
 
 
