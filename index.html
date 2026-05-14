@@ -878,11 +878,13 @@
                         playerCoins++;
                         coinHud.textContent = playerCoins;
                         sounds.coin();
+                        floatingTexts.push({x: inGameCoins[i].x, y: inGameCoins[i].y, text: '+1', life: 30});
                         inGameCoins.splice(i, 1);
                         continue;
                     }
 
                     if (inGameCoins[i].x + inGameCoins[i].radius < 0) {
+                        floatingTexts.push({x: inGameCoins[i].x, y: inGameCoins[i].y, text: '+1', life: 30});
                         inGameCoins.splice(i, 1);
                     }
                 }
@@ -1087,6 +1089,7 @@
     </script>
 </body>
 </html>
+
 
 
 
