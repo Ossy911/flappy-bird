@@ -201,6 +201,12 @@
             margin-top: 10px;
         }
 
+        .daily-btn {
+            background: #9C27B0;
+            color: white;
+            margin-top: 10px;
+        }
+
         #shop-screen {
             z-index: 20;
         }
@@ -297,6 +303,7 @@
                 <p>Tap to soar through the gaps!</p>
                 <button id="start-btn" class="btn">Start Game</button>
                 <button id="open-shop-btn" class="btn shop-btn">Open Shop</button>
+                <button id="daily-btn" class="btn daily-btn">Daily Gift</button>
                 <div class="developer">Created by Osita Daniel Ezenwoye</div>
             </div>
         </div>
@@ -377,7 +384,11 @@
                 playSound(1200, 'sine', 0.1, 0.1);
                 setTimeout(() => playSound(1600, 'sine', 0.15, 0.1), 100);
             },
-            buy: () => playSound(800, 'square', 0.2, 0.1)
+            buy: () => playSound(800, 'square', 0.2, 0.1),
+            thunder: () => {
+                playSound(150, 'sawtooth', 0.5, 0.2);
+                setTimeout(() => playSound(100, 'square', 1.0, 0.3), 100);
+            }
         };
 
         // Game Data & State Persistence
@@ -662,6 +673,7 @@
         let currentWeather = 'CLEAR';
         let envParticles = [];
         let stars = [];
+        let lightningFlash = 0;
 
         for (let i = 0; i < 50; i++) {
             stars.push({ x: Math.random() * 500, y: Math.random() * 800, radius: Math.random() * 1.5, alpha: Math.random() });
@@ -681,12 +693,21 @@
             globalTime++;
             if (globalTime % 1000 === 0) {
                 const r = Math.random();
-                if (r < 0.5) currentWeather = 'CLEAR';
-                else if (r < 0.75) currentWeather = 'RAIN';
+                if (r < 0.4) currentWeather = 'CLEAR';
+                else if (r < 0.6) currentWeather = 'RAIN';
+                else if (r < 0.8) currentWeather = 'STORM';
                 else currentWeather = 'SNOW';
             }
 
-            if (currentWeather === 'RAIN' && globalTime % 2 === 0) {
+            if (currentWeather === 'STORM' && Math.random() < 0.005 && lightningFlash <= 0) {
+                lightningFlash = 1.0;
+                sounds.thunder();
+            }
+            if (lightningFlash > 0) {
+                lightningFlash -= 0.05;
+            }
+
+            if ((currentWeather === 'RAIN' || currentWeather === 'STORM') && globalTime % 2 === 0) {
                 envParticles.push({ x: Math.random() * GAME_WIDTH, y: -10, type: 'RAIN', vy: 10 + Math.random() * 5, length: 10 + Math.random() * 10 });
             } else if (currentWeather === 'SNOW' && globalTime % 10 === 0) {
                 envParticles.push({ x: Math.random() * GAME_WIDTH, y: -10, type: 'SNOW', vy: 1 + Math.random() * 2, vx: -1 + Math.random() * 2, radius: 1 + Math.random() * 2 });
@@ -739,6 +760,11 @@
                     ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
                 }
                 if (p.y > GAME_HEIGHT || p.x < -20) envParticles.splice(i, 1);
+            }
+
+            if (lightningFlash > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${lightningFlash})`;
+                ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
             }
         }
 
@@ -903,6 +929,31 @@
                 showToast("Your coins aren't available for the purchase.");
             }
         };
+
+        function claimDailyReward(e) {
+            if (e) {
+                if (e.type === 'touchstart') e.preventDefault();
+                e.stopPropagation();
+            }
+            initAudio();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const lastCheckin = localStorage.getItem('flappy_last_checkin');
+            const today = new Date().toDateString();
+            
+            if (lastCheckin !== today) {
+                playerCoins += 50;
+                localStorage.setItem('flappy_last_checkin', today);
+                saveProgress();
+                sounds.coin();
+                showToast("Daily Gift Claimed! +50 Coins");
+            } else {
+                showToast("Already claimed today! Come back tomorrow.");
+            }
+        }
+
+        document.getElementById('daily-btn').addEventListener('click', claimDailyReward);
+        document.getElementById('daily-btn').addEventListener('touchstart', claimDailyReward, { passive: false });
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
