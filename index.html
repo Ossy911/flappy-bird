@@ -795,6 +795,7 @@
             if (!gameActive) return;
             gameActive = false;
             sounds.hit();
+            for(let i=0; i<30; i++) collisionParticles.push({x: bird.x, y: bird.y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 30});
             if (score > highScore) highScore = score;
             finalScoreLabel.textContent = score;
             highScoreLabel.textContent = highScore;
@@ -1040,6 +1041,7 @@
     </script>
 </body>
 </html>
+
 
 
 
